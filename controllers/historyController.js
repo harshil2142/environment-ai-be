@@ -16,7 +16,7 @@ const createHistory = asyncHandler(async (req, res) => {
 
         try {
 
-            const resp = await axios.post(`http://${ipAddress}:5003/response`, {
+            const resp = await axios.post(`http://${ipAddress}/response`, {
                 s3_url: pdfUrl,
                 query: prompt,
                 chat_history: []
@@ -67,7 +67,7 @@ const updateHistory = asyncHandler(async (req, res) => {
         }
         try {
 
-            const resp = await axios.post(`http://${ipAddress}:5003/response`, {
+            const resp = await axios.post(`http://${ipAddress}/response`, {
                 s3_url: history?.pdfUrl,
                 query: prompt,
                 // chat_history: chatHistory?.map((i) => ({ Human: i?.prompt, Chatbot: i?.response }))
@@ -113,14 +113,14 @@ const getSummury = asyncHandler(async (req, res) => {
     try {
         const { pdfUrl } = req.body;
 
-        if (pdfUrl) {
+        if (pdfUrl?.length > 0) {
             try {
 
-                const resp = await axios.post(`http://${ipAddress}:5002/summarize`, {
+                const resp = await axios.post(`http://${ipAddress}/summarize`, {
                     s3_url: pdfUrl
                 })
                 if (resp?.data) {
-                    sendSuccessResponse(res, { summury: resp?.data?.summary })
+                    sendSuccessResponse(res, { pdf_name: resp?.data?.pdf_name })
                 }
             } catch (error) {
                 sendErrorResponse(res, error.message, 400)
@@ -139,7 +139,7 @@ const getPageNumber = asyncHandler(async (req, res) => {
 
         const { pdfUrl, response } = req.body;
 
-        const resp = await axios.post(`http://${ipAddress}:5004/page_no`, {
+        const resp = await axios.post(`http://${ipAddress}/page_no`, {
             pdf_name: pdfUrl,
             response,
         })
