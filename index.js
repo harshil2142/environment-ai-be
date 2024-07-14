@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const userRoutes = require('./routes/userRoutes');
+const pdfRoutes = require('./routes/pdfRoutes');
 const historyRoutes = require("./routes/historyRoutes")
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
@@ -21,6 +22,7 @@ res.json("api running")
 })
 
 app.use('/api',userRoutes)
+app.use('/pdf',pdfRoutes)
 app.use('/history',historyRoutes)
 
 app.use(notFound)

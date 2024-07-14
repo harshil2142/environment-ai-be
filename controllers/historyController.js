@@ -7,7 +7,7 @@ const { paginatedArray } = require("../helper/pagination");
 const History = require("../models/historyModel");
 const { sendSuccessResponse, sendErrorResponse } = require("../helper/utils");
 
-const ipAddress = "3.218.108.179";
+const ipAddress = process.env.IP_ADDRESS;
 
 const createHistory = asyncHandler(async (req, res) => {
 
