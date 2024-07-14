@@ -6,154 +6,145 @@ const generateToken = require("../config/generateToken");
 const { paginatedArray } = require("../helper/pagination");
 const History = require("../models/historyModel");
 const { sendSuccessResponse, sendErrorResponse } = require("../helper/utils");
+require("dotenv").config();
 
 const ipAddress = process.env.IP_ADDRESS;
 
 const createHistory = asyncHandler(async (req, res) => {
+  try {
+    const { summary, userId, prompt, pdfUrl } = req.body;
 
     try {
-        const { summary, userId, prompt, pdfUrl } = req.body;
+      const resp = await axios.post(`http://${ipAddress}:5003/response`, {
+        s3_url: pdfUrl,
+        query: prompt,
+        chat_history: [],
+      });
+      if (resp?.data) {
+        const history = await History.create({
+          summary,
+          userId,
+          pdfUrl,
+          history: [
+            {
+              prompt,
+              response: resp?.data?.response,
+              pdfName: resp?.data?.pdf_name,
+            },
+          ],
+        });
 
-        try {
+        await history.populate("userId");
 
-            const resp = await axios.post(`http://${ipAddress}/response`, {
-                s3_url: pdfUrl,
-                query: prompt,
-                chat_history: []
-            })
-            if (resp?.data) {
-                const history = await History.create({
-                    summary,
-                    userId,
-                    pdfUrl,
-                    history: [
-                        {
-                            prompt,
-                            response: resp?.data?.response,
-                            pdfName : resp?.data?.pdf_name,
-                        }
-                    ]
-                })
-
-                await history.populate('userId');
-
-                if (history) {
-                    sendSuccessResponse(res, {
-                        history
-                    })
-                }
-            }
-
-
-        } catch (error) {
-            sendErrorResponse(res, error.message)
+        if (history) {
+          sendSuccessResponse(res, {
+            history,
+          });
         }
-
-
+      }
     } catch (error) {
-        sendErrorResponse(res, error.message)
+      sendErrorResponse(res, error.message);
     }
-})
+  } catch (error) {
+    sendErrorResponse(res, error.message);
+  }
+});
 
 const updateHistory = asyncHandler(async (req, res) => {
+  try {
+    const { historyId, prompt, chatHistory } = req.body;
 
-    try {
-        const { historyId, prompt, chatHistory } = req.body;
+    const history = await History.findById(historyId);
 
-        const history = await History.findById(historyId)
-
-        if (!history) {
-            sendErrorResponse(res, "History not found", 404)
-        }
-        try {
-
-            const resp = await axios.post(`http://${ipAddress}/response`, {
-                s3_url: history?.pdfUrl,
-                query: prompt,
-                // chat_history: chatHistory?.map((i) => ({ Human: i?.prompt, Chatbot: i?.response }))
-                chat_history : [],
-            })
-
-           
-            history.history.push({ prompt, response: resp?.data?.response , pdfName : resp?.data?.pdf_name });
-            await history.save();
-
-            sendSuccessResponse(res, {
-                history
-            })
-        } catch (error) {
-            sendErrorResponse(res, error.message)
-        }
-
-    } catch (error) {
-        sendErrorResponse(res, error.message)
+    if (!history) {
+      sendErrorResponse(res, "History not found", 404);
     }
-})
+    try {
+      const resp = await axios.post(`http://${ipAddress}:5003/response`, {
+        s3_url: history?.pdfUrl,
+        query: prompt,
+        // chat_history: chatHistory?.map((i) => ({ Human: i?.prompt, Chatbot: i?.response }))
+        chat_history: [],
+      });
+
+      history.history.push({
+        prompt,
+        response: resp?.data?.response,
+        pdfName: resp?.data?.pdf_name,
+      });
+      await history.save();
+
+      sendSuccessResponse(res, {
+        history,
+      });
+    } catch (error) {
+      sendErrorResponse(res, error.message);
+    }
+  } catch (error) {
+    sendErrorResponse(res, error.message);
+  }
+});
 
 const fetchHistory = asyncHandler(async (req, res) => {
-    try {
+  try {
+    const { userId, page, size } = req.query;
 
-        const { userId, page, size } = req.query;
+    const history = await History.find({ userId });
 
-        const history = await History.find({ userId });
-
-        if (!history || history.length === 0) {
-            sendSuccessResponse(res, { data: [] })
-        }
-
-        sendSuccessResponse(res, paginatedArray(history, page, size))
-
-    } catch (error) {
-        sendErrorResponse(res, error.message)
+    if (!history || history.length === 0) {
+      sendSuccessResponse(res, { data: [] });
     }
-})
+
+    sendSuccessResponse(res, paginatedArray(history, page, size));
+  } catch (error) {
+    sendErrorResponse(res, error.message);
+  }
+});
 
 const getSummury = asyncHandler(async (req, res) => {
+  try {
+    const { pdfUrl } = req.body;
 
-    try {
-        const { pdfUrl } = req.body;
-
-        if (pdfUrl?.length > 0) {
-            try {
-
-                const resp = await axios.post(`http://${ipAddress}/summarize`, {
-                    s3_url: pdfUrl
-                })
-                if (resp?.data) {
-                    sendSuccessResponse(res, { pdf_name: resp?.data?.pdf_name })
-                }
-            } catch (error) {
-                sendErrorResponse(res, error.message, 400)
-            }
-        }
-
-
-    } catch (error) {
-        sendErrorResponse(res, error.message)
-    }
-})
-
-const getPageNumber = asyncHandler(async (req, res) => {
-
-    try {
-
-        const { pdfUrl, response } = req.body;
-
-        const resp = await axios.post(`http://${ipAddress}/page_no`, {
-            pdf_name: pdfUrl,
-            response,
-        })
+    if (pdfUrl?.length > 0) {
+      try {
+        const resp = await axios.post(`http://${ipAddress}:5002/summarize`, {
+          s3_url: pdfUrl,
+        });
+        console.log(resp?.data);
 
         if (resp?.data) {
-            sendSuccessResponse(res, { pageNo: resp?.data?.page_number })
+          sendSuccessResponse(res, { pdf_name: resp?.data?.pdf_name });
         }
-
-    } catch (error) {
-        sendErrorResponse(res, error.message)
+      } catch (error) {
+        sendErrorResponse(res, error.message, 400);
+      }
     }
+  } catch (error) {
+    sendErrorResponse(res, error.message);
+  }
+});
 
-})
+const getPageNumber = asyncHandler(async (req, res) => {
+  try {
+    const { pdfUrl, response } = req.body;
+
+    const resp = await axios.post(`http://${ipAddress}/page_no`, {
+      pdf_name: pdfUrl,
+      response,
+    });
+
+    if (resp?.data) {
+      sendSuccessResponse(res, { pageNo: resp?.data?.page_number });
+    }
+  } catch (error) {
+    sendErrorResponse(res, error.message);
+  }
+});
 
 module.exports = {
-    createHistory, updateHistory, fetchHistory, getSummury , getPageNumber
-}
+  createHistory,
+  updateHistory,
+  fetchHistory,
+  getSummury,
+  getPageNumber,
+};
