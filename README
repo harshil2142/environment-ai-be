@@ -1,0 +1,9 @@
+# For running this project node should be install in PC.
+
+# Gettin started with download node module 
+
+For download the node modules we have to run given command in the cmd of this project folder : npm install
+
+# After download need to start the project
+
+For starting the project we need to run given command : node index.js
