@@ -5,7 +5,7 @@ const { fetchPdfUrl, updatePdfUrl } = require("../controllers/pdfController");
 
 const router = express.Router();
 
-router.get("/get", protect, fetchPdfUrl);
-router.patch("/update", updatePdfUrl);
+router.get('/get',protect,fetchPdfUrl)
+router.patch('/update',protect,updatePdfUrl)
 
 module.exports = router;
