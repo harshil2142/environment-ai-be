@@ -8,8 +8,7 @@ const historySchema = new mongoose.Schema({
         required: true
     },
     pdfUrl: {
-        type: String,
-        required: true
+        type: String
     },
     summary:{
         type : String,
