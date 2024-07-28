@@ -12,7 +12,7 @@ const ipAddress = process.env.IP_ADDRESS;
 
 const createHistory = asyncHandler(async (req, res) => {
     try {
-        const { summary, userId, prompt, pdfUrl } = req.body;
+        const { userId, prompt, pdfUrl } = req.body;
 
         try {
 
@@ -20,7 +20,7 @@ const createHistory = asyncHandler(async (req, res) => {
                 pdf_name: pdfUrl,
                 query: prompt,
             })
-
+            
             if (resp?.data) {
                 const history = await History.create({
                     summary: "",
@@ -44,7 +44,6 @@ const createHistory = asyncHandler(async (req, res) => {
                 }
             }
         } catch (error) {
-            console.log(error?.response)
             sendErrorResponse(res, error?.response?.data);
         }
     } catch (error) {
@@ -101,12 +100,12 @@ const fetchHistory = asyncHandler(async (req, res) => {
 
 const getSummury = asyncHandler(async (req, res) => {
     try {
-        const { pdfUrl } = req.body;
+        const { pdfData } = req.body;
 
-        if (pdfUrl?.length > 0) {
+        if (pdfData?.length > 0) {
             try {
                 const resp = await axios.post(`http://${ipAddress}:5002/summarize`, {
-                    s3_url: pdfUrl
+                    pdf_files: pdfData
                 })
                 if (resp?.data) {
                     sendSuccessResponse(res, { pdf_name: resp?.data?.pdf_name })
