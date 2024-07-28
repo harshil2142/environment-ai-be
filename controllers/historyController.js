@@ -8,6 +8,7 @@ const History = require("../models/historyModel");
 const { sendSuccessResponse, sendErrorResponse } = require("../helper/utils");
 require("dotenv").config();
 
+
 const ipAddress = process.env.IP_ADDRESS;
 
 const createHistory = asyncHandler(async (req, res) => {
@@ -16,7 +17,7 @@ const createHistory = asyncHandler(async (req, res) => {
 
         try {
 
-            const resp = await axios.post(`http://${ipAddress}:5003/response`, {
+            const resp = await axios.post(`http://${ipAddress}:8000/query`, {
                 pdf_name: pdfUrl,
                 query: prompt,
             })
@@ -62,7 +63,7 @@ const updateHistory = asyncHandler(async (req, res) => {
         }
         try {
 
-            const resp = await axios.post(`http://${ipAddress}:5003/response`, {
+            const resp = await axios.post(`http://${ipAddress}:8000/query`, {
                 pdf_name: pdfUrl,
                 query: prompt,
             })
@@ -99,12 +100,13 @@ const fetchHistory = asyncHandler(async (req, res) => {
 });
 
 const getSummury = asyncHandler(async (req, res) => {
+
     try {
         const { pdfData } = req.body;
 
         if (pdfData?.length > 0) {
             try {
-                const resp = await axios.post(`http://${ipAddress}:5002/summarize`, {
+                const resp = await axios.post(`http://${ipAddress}:8000/summarize`, {
                     pdf_files: pdfData
                 })
                 if (resp?.data) {

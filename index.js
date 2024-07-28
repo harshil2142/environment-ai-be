@@ -3,12 +3,16 @@ const mongoose = require("mongoose");
 const userRoutes = require('./routes/userRoutes');
 const pdfRoutes = require('./routes/pdfRoutes');
 const historyRoutes = require("./routes/historyRoutes")
+const bodyParser = require('body-parser');
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 require("dotenv").config()
 const cors = require("cors")
 const app = express();
 
+
+app.use(bodyParser.json({ limit: '100mb' }));
+app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 
 mongoose.connect(process.env.MONGO_URI).then(()=>{
     console.log("database connected");
